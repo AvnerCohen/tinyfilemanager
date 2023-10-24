@@ -14,7 +14,7 @@ $CONFIG = '{"lang":"en","error_reporting":false,"show_hidden":false,"hide_Cols":
 define('VERSION', '2.5.3');
 
 //Application Title
-define('APP_TITLE', 'Tiny File Manager');
+$app_title = 'Tiny File Manager';
 
 // --- EDIT BELOW CONFIGURATION CAREFULLY ---
 
@@ -22,6 +22,9 @@ define('APP_TITLE', 'Tiny File Manager');
 // set true/false to enable/disable it
 // Is independent from IP white- and blacklisting
 $use_auth = true;
+
+$show_extra_file_info = true;
+$show_line_numbers = false;
 
 // Login user name and password
 // Users: array('Username' => 'Password', 'Username2' => 'Password2', ...)
@@ -154,15 +157,17 @@ $external = array(
     'css-bootstrap' => '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">',
     'css-dropzone' => '<link href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.css" rel="stylesheet">',
     'css-font-awesome' => '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">',
-    'css-highlightjs' => '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/' . $highlightjs_style . '.min.css">',
+    'css-highlightjs' => '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/' . $highlightjs_style . '.min.css">',
     'js-ace' => '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.13.1/ace.js"></script>',
     'js-bootstrap' => '<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>',
     'js-dropzone' => '<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>',
     'js-jquery' => '<script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>',
     'js-jquery-datatables' => '<script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js" crossorigin="anonymous" defer></script>',
-    'js-highlightjs' => '<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>',
+    'js-highlightjs' => '<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>',
     'pre-jsdelivr' => '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"/>',
-    'pre-cloudflare' => '<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin/><link rel="dns-prefetch" href="https://cdnjs.cloudflare.com"/>'
+    'pre-cloudflare' => '<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin/><link rel="dns-prefetch" href="https://cdnjs.cloudflare.com"/>',
+    'js-line-numbers' => '<script src="//cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>'
+
 );
 
 // --- EDIT BELOW CAREFULLY OR DO NOT EDIT AT ALL ---
@@ -172,6 +177,8 @@ define('MAX_UPLOAD_SIZE', $max_upload_size_bytes);
 
 // upload chunk size
 define('UPLOAD_CHUNK_SIZE', $upload_chunk_size_bytes);
+
+define('APP_TITLE', $app_title);
 
 // private key and session name to store to the session
 if ( !defined( 'FM_SESSION_ID')) {
@@ -248,7 +255,7 @@ if (empty($_SESSION['token'])) {
     if (function_exists('random_bytes')) {
         $_SESSION['token'] = bin2hex(random_bytes(32));
     } else {
-    	$_SESSION['token'] = bin2hex(openssl_random_pseudo_bytes(32));
+      $_SESSION['token'] = bin2hex(openssl_random_pseudo_bytes(32));
     }
 }
 
@@ -450,6 +457,7 @@ defined('FM_ICONV_INPUT_ENC') || define('FM_ICONV_INPUT_ENC', $iconv_input_encod
 defined('FM_USE_HIGHLIGHTJS') || define('FM_USE_HIGHLIGHTJS', $use_highlightjs);
 defined('FM_HIGHLIGHTJS_STYLE') || define('FM_HIGHLIGHTJS_STYLE', $highlightjs_style);
 defined('FM_DATETIME_FORMAT') || define('FM_DATETIME_FORMAT', $datetime_format);
+defined('FM_SHOW_LINE_NUMBERS') || define('FM_SHOW_LINE_NUMBERS', $show_line_numbers);
 
 unset($p, $use_auth, $iconv_input_encoding, $use_highlightjs, $highlightjs_style);
 
@@ -1701,6 +1709,7 @@ if (isset($_GET['view'])) {
     <div class="row">
         <div class="col-12">
             <p class="break-word"><b><?php echo lng($view_title) ?> "<?php echo fm_enc(fm_convert_win($file)) ?>"</b></p>
+            <?php if ($show_extra_file_info) { ?>
             <p class="break-word">
                 <?php $display_path = fm_get_display_path($file_path); ?>
                 <strong><?php echo $display_path['label']; ?>:</strong> <?php echo $display_path['path']; ?><br>
@@ -1743,6 +1752,7 @@ if (isset($_GET['view'])) {
                 }
                 ?>
             </p>
+            <?php } ?>
             <div class="d-flex align-items-center mb-3">
                 <form method="post" class="d-inline ms-2" action="?p=<?php echo urlencode(FM_PATH) ?>&amp;dl=<?php echo urlencode($file) ?>">
                     <input type="hidden" name="token" value="<?php echo $_SESSION['token']; ?>">
@@ -1824,7 +1834,7 @@ if (isset($_GET['view'])) {
                     if (empty($ext) || in_array(strtolower($file), fm_get_text_names()) || preg_match('#\.min\.(css|js)$#i', $file)) {
                         $hljs_class = 'nohighlight';
                     }
-                    $content = '<pre class="with-hljs"><code class="' . $hljs_class . '">' . fm_enc($content) . '</code></pre>';
+                    $content = '<pre><code class="language-yaml hljs ' . $hljs_class . '">' . fm_enc($content) . '</code></pre>';
                 } elseif (in_array($ext, array('php', 'php4', 'php5', 'phtml', 'phps'))) {
                     // php highlight
                     $content = highlight_string($content, true);
@@ -3727,7 +3737,7 @@ $isStickyNavBar = $sticky_navbar ? 'navbar-fixed' : 'navbar-normal';
     <?php print_external('css-bootstrap'); ?>
     <?php print_external('css-font-awesome'); ?>
     <?php if (FM_USE_HIGHLIGHTJS && isset($_GET['view'])): ?>
-    <?php print_external('css-highlightjs'); ?>
+        <?php print_external('css-highlightjs'); ?>
     <?php endif; ?>
     <script type="text/javascript">window.csrf = '<?php echo $_SESSION['token']; ?>';</script>
     <style>
@@ -3736,7 +3746,6 @@ $isStickyNavBar = $sticky_navbar ? 'navbar-fixed' : 'navbar-normal';
         body { font-size:15px; color:#222;background:#F7F7F7; }
         body.navbar-fixed { margin-top:55px; }
         a, a:hover, a:visited, a:focus { text-decoration:none !important; }
-        .filename, td, th { white-space:nowrap  }
         .navbar-brand { font-weight:bold; }
         .nav-item.avatar a { cursor:pointer;text-transform:capitalize; }
         .nav-item.avatar a > i { font-size:15px; }
@@ -3993,7 +4002,14 @@ $isStickyNavBar = $sticky_navbar ? 'navbar-fixed' : 'navbar-normal';
 <?php print_external('js-jquery-datatables'); ?>
 <?php if (FM_USE_HIGHLIGHTJS && isset($_GET['view'])): ?>
     <?php print_external('js-highlightjs'); ?>
-    <script>hljs.highlightAll(); var isHighlightingEnabled = true;</script>
+    <?php print_external('js-line-numbers'); ?>
+    <script>
+    hljs.highlightAll();
+    <?php if (FM_SHOW_LINE_NUMBERS): ?>
+    hljs.initLineNumbersOnLoad();
+    <?php endif; ?>
+    var isHighlightingEnabled = true;
+</script>
 <?php endif; ?>
 <script>
     function template(html,options){
